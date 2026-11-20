@@ -2,13 +2,17 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 // Default admin credentials for the local business owner (configurable in code/env)
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'dubai2026';
 
 export async function POST(request: Request) {
   try {
-    const { password } = await request.json();
+    const { username, password } = await request.json();
 
-    if (password === ADMIN_PASSWORD) {
+    const isUsernameValid = !username || username === ADMIN_USERNAME;
+    const isPasswordValid = password === ADMIN_PASSWORD;
+
+    if (isUsernameValid && isPasswordValid) {
       const cookieStore = await cookies();
       cookieStore.set('apex_admin_session', 'authenticated_token_apex_2026', {
         httpOnly: true,
@@ -21,7 +25,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'Authenticated successfully' });
     }
 
-    return NextResponse.json({ error: 'Invalid password. Please check your credentials.' }, { status: 401 });
+    return NextResponse.json({ error: 'Invalid username or password. Please check your credentials.' }, { status: 401 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Authentication error' }, { status: 500 });
   }
